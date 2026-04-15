@@ -17,8 +17,19 @@ void calculateSalary(struct Employee *e) {
 
 // Add Employee
 void addEmployee() {
-    FILE *fp = fopen("employee.csv", "a");
+    FILE *fp = fopen("employee.csv", "a+");
     struct Employee e;
+
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    // Add header if file is empty
+    fseek(fp, 0, SEEK_END);
+    if (ftell(fp) == 0) {
+        fprintf(fp, "ID,Name,Basic,HRA,DA,Total\n");
+    }
 
     printf("\nEnter Employee ID: ");
     scanf("%d", &e.id);
@@ -31,7 +42,6 @@ void addEmployee() {
 
     calculateSalary(&e);
 
-    // Writing in CSV format
     fprintf(fp, "%d,%s,%.2f,%.2f,%.2f,%.2f\n",
             e.id, e.name, e.basicSalary, e.hra, e.da, e.totalSalary);
 
@@ -43,6 +53,7 @@ void addEmployee() {
 void displayEmployees() {
     FILE *fp = fopen("employee.csv", "r");
     struct Employee e;
+    char line[200];
 
     if (fp == NULL) {
         printf("\nNo records found!\n");
@@ -50,6 +61,8 @@ void displayEmployees() {
     }
 
     printf("\n--- Employee List ---\n");
+
+    fgets(line, sizeof(line), fp); // skip header
 
     while (fscanf(fp, "%d,%49[^,],%f,%f,%f,%f\n",
                   &e.id, e.name, &e.basicSalary,
@@ -71,6 +84,7 @@ void searchEmployee() {
     FILE *fp = fopen("employee.csv", "r");
     struct Employee e;
     int id, found = 0;
+    char line[200];
 
     if (fp == NULL) {
         printf("\nNo records found!\n");
@@ -79,6 +93,8 @@ void searchEmployee() {
 
     printf("\nEnter Employee ID to Search: ");
     scanf("%d", &id);
+
+    fgets(line, sizeof(line), fp); // skip header
 
     while (fscanf(fp, "%d,%49[^,],%f,%f,%f,%f\n",
                   &e.id, e.name, &e.basicSalary,
@@ -106,6 +122,7 @@ void deleteEmployee() {
 
     struct Employee e;
     int id, found = 0;
+    char line[200];
 
     if (fp == NULL) {
         printf("\nNo records found!\n");
@@ -114,6 +131,10 @@ void deleteEmployee() {
 
     printf("\nEnter Employee ID to Delete: ");
     scanf("%d", &id);
+
+    // Copy header
+    fgets(line, sizeof(line), fp);
+    fprintf(temp, "%s", line);
 
     while (fscanf(fp, "%d,%49[^,],%f,%f,%f,%f\n",
                   &e.id, e.name, &e.basicSalary,
